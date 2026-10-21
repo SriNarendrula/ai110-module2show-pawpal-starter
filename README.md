@@ -155,11 +155,29 @@ test_pawpal.py ..                                                               
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+**Main UI features:**
+- Owner name and daily minutes, set at the top of the page.
+- Add-a-pet form, with a table of pets and their task counts.
+- Add-a-task form with title, duration, priority, category, optional start time, and repeat setting.
+- Task table with Show (All, Pending, Completed) and Pet filters. Rows are sorted by time.
+- Timing check showing conflict warnings, or a success message when there are none.
+- Mark-complete control, which creates the next occurrence for recurring tasks.
+- Daily plan for one pet, with the time budget and skipped tasks.
+
+**Example workflow:**
+    1. Enter the owner's available minutes.
+    2. Add a pet, such as Mochi (dog).
+    3. Add tasks, including one with a start time of 07:30 and one at 07:45 for another pet. Set one task to repeat daily.
+    4. Check the Timing check section for the overlap warning.
+    5. Mark the daily task complete and see its next due date.
+    6. Pick a pet under "Plan for" and click Generate schedule.
+
+**Scheduler behaviors shown:**
+- Sorting: the task table lists timed tasks in chronological order, with untimed tasks at the bottom.
+- Filtering: switching Show or Pet narrows the table without changing the data.
+- Conflicts: overlapping pending tasks produce a warning that names both tasks.
+- Recurrence: a completed daily task appears again as a new pending task.
+- Planning: the daily plan orders by priority and stops at the time budget.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
 
