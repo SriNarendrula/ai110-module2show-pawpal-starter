@@ -53,6 +53,55 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 #   09:00 — Feeding (10 min) [priority: high]
 #   ...
 ```
+(.venv) (base) srinarendrula@Sris-MacBook-Pro ai110-module2show-pawpal-starter % python main.py
+=== All tasks, sorted by time ===
+  07:30  Morning walk
+  07:45  Laser pointer
+  08:00  Heart medication
+  12:15  Feather wand play
+  18:00  Evening walk
+  --:--  Brush coat
+  --:--  Give medication
+  --:--  Give medication
+  --:--  Catnip time
+
+=== Pending tasks ===
+  --:--  Mochi: Brush coat [pending]
+  18:00  Mochi: Evening walk [pending]
+  --:--  Mochi: Give medication [pending]
+  12:15  Luna: Feather wand play [pending]
+  08:00  Luna: Heart medication [pending]
+  --:--  Luna: Catnip time [pending]
+  07:45  Luna: Laser pointer [pending]
+
+=== Completed tasks ===
+  07:30  Mochi: Morning walk [done]
+  --:--  Mochi: Give medication [done]
+
+=== Conflicts ===
+  (none)
+
+=== Luna's tasks ===
+  12:15  Luna: Feather wand play [pending]
+  08:00  Luna: Heart medication [pending]
+  --:--  Luna: Catnip time [pending]
+  07:45  Luna: Laser pointer [pending]
+
+=== Generated plans ===
+Today's Schedule for Mochi (dog)
+--------------------------------------------------
+08:00  Give medication (5 min) [high]
+08:05  Give medication (5 min) [high]
+08:10  Evening walk (30 min) [high]
+08:40  Morning walk (30 min) [high]
+09:10  Brush coat (15 min) [low]
+
+Today's Schedule for Luna (cat)
+--------------------------------------------------
+08:00  Heart medication (5 min) [high]
+08:05  Feather wand play (20 min) [medium]
+08:25  Catnip time (10 min) [low]
+08:35  Laser pointer (15 min) [low]
 
 ## 🧪 Testing PawPal+
 
@@ -63,6 +112,15 @@ pytest
 # Run with coverage:
 pytest --cov
 ```
+
+The tests in `tests/test_pawpal.py` cover:
+
+- **Sorting:** `sort_by_time` returns timed tasks chronologically and places untimed tasks last.
+- **Recurrence:** Daily and weekly tasks produce a next occurrence 1 and 7 days later, including across month boundaries. One-time tasks produce none.
+- **Conflict detection:** Exact-time matches and overlapping durations produce warnings. Back-to-back tasks, completed tasks, and untimed tasks do not.
+- **Plan generation:** Plans stay within the owner's budget, order high priority first, skip tasks that don't fit, and handle pets with no tasks.
+- **Filtering:** `filter_tasks` separates pending and completed tasks and filters by pet name.
+
 
 Sample test output:
 
