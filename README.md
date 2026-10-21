@@ -69,6 +69,17 @@ Sample test output:
 ```
 # Paste your pytest output here
 ```
+(.venv) (base) srinarendrula@Sris-MacBook-Pro ai110-module2show-pawpal-starter % python -m pytest
+=========================================== test session starts ===========================================
+platform darwin -- Python 3.13.5, pytest-9.1.1, pluggy-1.7.0
+rootdir: /Users/srinarendrula/Desktop/ai110-module2show-pawpal-starter
+plugins: anyio-4.15.1
+collected 2 items                                                                                         
+
+test_pawpal.py ..                                                                                   [100%]
+
+============================================ 2 passed in 0.06s ============================================
+(.venv) (base) srinarendrula@Sris-MacBook-Pro ai110-module2show-pawpal-starter % 
 
 ## 📐 Smarter Scheduling
 
@@ -92,3 +103,17 @@ Describe your app in numbered steps so a reader can follow along without watchin
 5. <!-- Add more steps as needed -->
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+
+
+
+## Implementation Summary
+
+PawPal+ builds a daily care plan for one pet at a time, within the owner's available minutes.
+
+- **Owner** holds the name and daily time budget (`available_minutes`).
+- **Pet** holds its name, species, owner, and a list of `Task`s.
+- **Task** is one care activity with a duration, a priority (high, medium, or low), a category, and a `completed` flag.
+- **Scheduler** takes an `Owner` and produces a `DailyPlan` for a pet. It sorts tasks by priority (shorter tasks first within a priority), keeps the ones that fit the remaining budget, and skips the rest. It then stacks the kept tasks from a start time (8:00 by default) and records a reason for each.
+- **DailyPlan** holds the scheduled entries and skipped tasks, and renders them as a text summary.
+
+`main.py` runs the scheduler on two pets and prints each schedule. `tests/test_pawpal.py` covers task completion and task addition with pytest.

@@ -32,13 +32,13 @@
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used an AI assistant to brainstorm the class design, draft the UML diagram, generate Python stubs from it, implement the scheduling methods, draft the first tests, and write these docstrings and docs. The most useful prompts were specific ones that named the design decision I needed to make, such as "one pet at a time" or "durations, not fixed times," because the answers then matched the scenario instead of a generic pet app.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+The clearest case of not accepting a suggestion as-is was the test file. The assistant's first test called `mark_complete()`, but my `Task` class had no such method or `completed` field, since I had left them out of the stubs. Running the test would have failed immediately. I added the field and method deliberately, as a small design change, rather than changing the test to match the code. I also decided the tie-breaking rule myself: within a priority level, shorter tasks go first so more of them fit the budget. The assistant had suggested considering both options, and I chose the shorter-first rule because it fits the goal of finishing as many care tasks as possible.
+
+I verified the result by running `python main.py` to check the printed schedule against the expected order by hand, and by running `python -m pytest` on the tests. [Edit this line to describe any bugs you found while running them.]
 
 ---
 
