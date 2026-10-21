@@ -81,16 +81,17 @@ test_pawpal.py ..                                                               
 ============================================ 2 passed in 0.06s ============================================
 (.venv) (base) srinarendrula@Sris-MacBook-Pro ai110-module2show-pawpal-starter % 
 
-## 📐 Smarter Scheduling
+## Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+| Feature | Method(s) | Behavior |
+|---------|-----------|----------|
+| Sorting by time | `Scheduler.sort_by_time()` | Orders tasks by `"HH:MM"` start time. Zero-padded strings sort correctly as text. Untimed tasks go last, in their original order. |
+| Sorting by priority | `Scheduler._sort_by_priority()` | Used by `generate_plan`. Orders high, then medium, then low, with shorter tasks first within a priority. |
+| Filtering | `Scheduler.filter_tasks()` | Returns `(pet, task)` pairs filtered by completion status, pet name, or both. Pass `None` to skip a filter. |
+| Conflict detection | `Scheduler.detect_conflicts()` | Returns warning strings for pending, timed tasks whose time ranges overlap, across all pets. Uses durations, not just exact matches. Never raises. |
+| Recurring tasks | `Task.mark_complete()`, `Pet.complete_task()` | Completing a daily or weekly task returns a new task due `timedelta(days=1)` or `timedelta(days=7)` later. `Pet.complete_task()` adds it to the pet's list. |
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+**Known limitation:** `generate_plan` stacks tasks back to back from the day start and ignores `start_time`. Conflict warnings describe the times the owner entered, while the generated plan is a suggested order, not a timetable.
 
 ## 📸 Demo Walkthrough
 

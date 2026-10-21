@@ -1,19 +1,33 @@
+import re
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 
 PRIORITY_RANK = {"high": 0, "medium": 1, "low": 2}
+FREQUENCY_DAYS = {"daily": 1, "weekly": 7}
+TIME_PATTERN = re.compile(r"([01]\d|2[0-3]):[0-5]\d")
 
 
 @dataclass
 class Owner:
-    """A pet owner and their daily time budget."""
+    """A pet owner, their daily time budget, and their pets."""
 
     name: str
     available_minutes: int
+    pets: list["Pet"] = field(default_factory=list, repr=False)
 
     def __post_init__(self):
         """Reject negative time budgets."""
         if self.available_minutes < 0:
             raise ValueError("available_minutes must be non-negative")
+
+    def add_pet(self, pet: "Pet") -> None:
+        """Register a pet under this owner, rejecting duplicate names."""
+        if any(p.name == pet.name for p in self.pets):
+            raise ValueError(f"A pet named {pet.name} already exists")
+        self.pets.append(pet)
+
+
+FREQUENCY_DAYS = {"daily": 1, "weekly": 7}
 
 
 @dataclass
@@ -25,17 +39,41 @@ class Task:
     priority: str  # "low", "medium", or "high"
     category: str  # e.g., "walk", "feeding", "meds", "enrichment", "grooming"
     completed: bool = False
+    start_time: str | None = None  # optional preferred time, "HH:MM"
+    frequency: str = "once"  # "once", "daily", or "weekly"
+    due_date: date | None = None
 
     def __post_init__(self):
-        """Reject non-positive durations and unknown priorities."""
+        """Reject invalid durations, priorities, times, and frequencies."""
         if self.duration_minutes <= 0:
             raise ValueError("duration_minutes must be positive")
         if self.priority not in PRIORITY_RANK:
             raise ValueError(f"priority must be one of {list(PRIORITY_RANK)}")
+        if self.start_time is not None and not TIME_PATTERN.fullmatch(self.start_time):
+            raise ValueError("start_time must be HH:MM, e.g. '08:30'")
+        if self.frequency not in ("once", "daily", "weekly"):
+            raise ValueError("frequency must be 'once', 'daily', or 'weekly'")
 
-    def mark_complete(self) -> None:
-        """Mark this task as done."""
+    def mark_complete(self) -> "Task | None":
+        """Mark this task done and return its next occurrence if it recurs.
+
+        Daily and weekly tasks produce a new Task due one period after this
+        task's due_date (or today, if no due_date is set). One-time tasks
+        return None. The new task is not completed.
+        """
         self.completed = True
+        if self.frequency not in FREQUENCY_DAYS:
+            return None
+        base = self.due_date or date.today()
+        return Task(
+            title=self.title,
+            duration_minutes=self.duration_minutes,
+            priority=self.priority,
+            category=self.category,
+            start_time=self.start_time,
+            frequency=self.frequency,
+            due_date=base + timedelta(days=FREQUENCY_DAYS[self.frequency]),
+        )
 
 
 @dataclass
@@ -50,6 +88,16 @@ class Pet:
     def add_task(self, task: Task) -> None:
         """Append a care task to this pet's task list."""
         self.tasks.append(task)
+    def complete_task(self, task: Task) -> Task | None:
+        """Complete a task and append its next occurrence to this pet, if any.
+
+        Call this instead of task.mark_complete() so recurring tasks are not lost.
+        Returns the new task, or None for one-time tasks.
+        """
+        next_task = task.mark_complete()
+        if next_task is not None:
+            self.tasks.append(next_task)
+        return next_task
 
 
 @dataclass
@@ -127,3 +175,58 @@ class Scheduler:
             else:
                 skipped.append(task)
         return fits, skipped
+
+    def sort_by_time(self, tasks: list[Task]) -> list[Task]:
+        """Return tasks ordered by HH:MM start time, with untimed tasks last.
+
+        Zero-padded "HH:MM" strings sort correctly as plain text, so no parsing
+        is needed. Untimed tasks map to "99:99", which sorts after any valid time.
+        Python's sort is stable, so untimed tasks keep their original order.
+        """
+        return sorted(tasks, key=lambda t: t.start_time or "99:99")
+
+    def filter_tasks(
+        self, completed: bool | None = None, pet_name: str | None = None
+    ) -> list[tuple[Pet, Task]]:
+        """Return (pet, task) pairs across the owner's pets, optionally filtered.
+
+        Pass None for a filter to leave that field unfiltered. Pairs keep the
+        owner's pet order and each pet's task order.
+        """
+        results = []
+        for pet in self.owner.pets:
+            if pet_name is not None and pet.name != pet_name:
+                continue
+            for task in pet.tasks:
+                if completed is not None and task.completed != completed:
+                    continue
+                results.append((pet, task))
+        return results
+
+    def detect_conflicts(self, pairs: list[tuple[Pet, Task]]) -> list[str]:
+        """Return a warning for each pair of timed, pending tasks whose time ranges overlap.
+
+        Each task's range runs from its start_time to start_time plus its duration.
+        Completed and untimed tasks are ignored. Tasks are sorted by start time,
+        so the inner loop can stop as soon as a later task starts after the current
+        task ends. Warnings are returned as strings and never raise.
+        """
+        timed = []
+        for pet, task in pairs:
+            if task.start_time is None or task.completed:
+                continue
+            hours, minutes = map(int, task.start_time.split(":"))
+            start = hours * 60 + minutes
+            timed.append((start, start + task.duration_minutes, pet, task))
+
+        timed.sort(key=lambda item: item[0])
+        warnings = []
+        for i, (_, end_a, pet_a, task_a) in enumerate(timed):
+            for start_b, _, pet_b, task_b in timed[i + 1:]:
+                if start_b >= end_a:
+                    break
+                warnings.append(
+                    f"Conflict: {pet_a.name}'s '{task_a.title}' overlaps "
+                    f"{pet_b.name}'s '{task_b.title}' at {task_b.start_time}"
+                )
+        return warnings

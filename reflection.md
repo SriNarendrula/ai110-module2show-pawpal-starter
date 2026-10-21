@@ -24,7 +24,10 @@
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+
 - Why is that tradeoff reasonable for this scenario?
+
+`detect_conflicts` flags any two timed tasks whose durations overlap, which catches a 30-minute walk and a 5-minute medication that starts during it. However, `generate_plan` still stacks tasks back to back from 8:00 and ignores `start_time` entirely. So the warnings describe the owner's stated preferences, while the generated plan doesn't follow them. I chose this because respecting every preferred time while also fitting a budget and priorities would need a full scheduling search, which is more complexity than a single-day planner needs. The result is that the warnings are useful for catching clashes in what the owner entered, but the plan itself should be read as a suggested order, not a timetable.
 
 ---
 
